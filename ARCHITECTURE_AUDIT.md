@@ -17,19 +17,19 @@
 
 ```mermaid
 flowchart TD
-  WA[WhatsApp via Baileys\nsrc/channels/whatsapp.ts]
-  DB[(SQLite store/messages.db\nsrc/db.ts)]
-  Host[Host Orchestrator\nsrc/index.ts]
-  Queue[Per-group queue\nsrc/group-queue.ts]
-  Sched[Scheduler loop\nsrc/task-scheduler.ts]
-  IPC[IPC watcher\nsrc/ipc.ts]
-  Cont[Apple container process\nsrc/container-runner.ts]
-  Runner[Container agent runner\ncontainer/agent-runner/src/index.ts]
-  MCP[MCP stdio tools\ncontainer/agent-runner/src/ipc-mcp-stdio.ts]
+  WA[WhatsApp via Baileys<br/>src/channels/whatsapp.ts]
+  DB[(SQLite store/messages.db<br/>src/db.ts)]
+  Host[Host Orchestrator<br/>src/index.ts]
+  Queue[Per-group queue<br/>src/group-queue.ts]
+  Sched[Scheduler loop<br/>src/task-scheduler.ts]
+  IPC[IPC watcher<br/>src/ipc.ts]
+  Cont[Apple container process<br/>src/container-runner.ts]
+  Runner[Container agent runner<br/>container/agent-runner/src/index.ts]
+  MCP[MCP stdio tools<br/>container/agent-runner/src/ipc-mcp-stdio.ts]
   FS[/data/ipc + data/sessions + groups/]
 
   WA -->|on inbound| DB
-  Host -->|poll getNewMessages|get DB
+  Host -->|poll: getNewMessages| DB
   Host --> Queue
   Sched --> Queue
   Queue --> Cont
