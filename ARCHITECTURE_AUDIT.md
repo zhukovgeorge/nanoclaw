@@ -436,6 +436,54 @@ Evidence: (src/db.ts:10-75), (src/db.ts:279-299), (src/db.ts:396-409), (src/db.t
 
 ---
 
+
+---
+
+# 12) Pros/Cons vs Original OpenClaw Architecture (Comparison)
+
+> Scope note: OpenClaw code was **not accessible from this environment** (HTTP 403 on linked sources). Comparison below is based on the user-provided OpenClaw architecture summary and this repository's verified code.
+
+## Pros of NanoClaw architecture (relative to reported OpenClaw design)
+
+1. **Smaller host runtime blast radius**
+   - NanoClaw uses a compact host orchestrator + SQLite + file IPC pipeline. (src/index.ts:456-503), (src/db.ts:87-96), (src/ipc.ts:34-44)
+   - The codebase explicitly centralizes control in one host process loop model. (README.md:124-135)
+
+2. **OS-level isolation-first execution model**
+   - Agent work is executed in containers with explicit mount lists. (src/container-runner.ts:58-99,209-227)
+   - Additional mounts are validated through an external allowlist with blocked patterns and path checks. (src/mount-security.ts:53-71,201-218,268-289)
+
+3. **Per-group isolation semantics are straightforward**
+   - Group sessions, IPC namespaces, and per-group folders are isolated by folder boundaries. (src/container-runner.ts:100-158)
+   - IPC authorization is enforced by source folder identity (`sourceGroup`) rather than trusting payload claims. (src/ipc.ts:45-63,176-179)
+
+4. **Operational behavior is easier to reason about**
+   - Queueing, retries, and timeouts are implemented in a small number of files with explicit constants. (src/group-queue.ts:14-16,220-241), (src/container-runner.ts:368-390)
+
+## Cons of NanoClaw architecture (relative to reported OpenClaw design)
+
+1. **Less protocol/service richness out-of-the-box**
+   - NanoClaw implements WhatsApp-centric channeling and does not expose a broad first-class HTTP/WS API surface comparable to the OpenClaw summary.
+   - Verified local evidence shows a WhatsApp-first runtime with local IPC for tool actions. (src/channels/whatsapp.ts:29-31,144-181), (src/ipc.ts:65-131)
+
+2. **Simpler memory subsystem**
+   - NanoClaw persists chat/task/session state in SQLite but does not implement built-in FTS/vector hybrid memory search in the host runtime.
+   - DB schema and query paths are conventional tables/indices without FTS5/vector constructs. (src/db.ts:10-75,234-277)
+
+3. **Limited extensibility model at host layer**
+   - Host runtime does not show a formal plugin registry/loader architecture in `src/`.
+   - Extensibility is primarily via container-side skills + MCP tools. (src/container-runner.ts:126-141), (container/agent-runner/src/ipc-mcp-stdio.ts:42-275)
+
+4. **Security posture has strong isolation, but permissive agent tool permissions**
+   - The container agent enables `permissionMode: 'bypassPermissions'` and dangerous skip flags. (container/agent-runner/src/index.ts:393-395)
+   - This can undercut safety controls if mounts are overly permissive.
+
+## Net assessment
+
+- **NanoClaw strengths**: minimal architecture, clear isolation boundaries, easier auditability.
+- **NanoClaw tradeoff**: fewer built-in gateways/protocols/memory features and less structured plugin/runtime modularity than the reported OpenClaw architecture.
+- **Not verified warning**: OpenClaw-specific details here are comparative context from the provided external summary, not independently source-verified in this environment.
+
 # Appendix — Exact Commands Run
 
 ```bash
